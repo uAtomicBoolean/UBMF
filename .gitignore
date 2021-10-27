@@ -106,3 +106,4 @@ dist
 # Personnaly added files and folders.
 ./src/files
 ./.idea
+/src/files/config.json
