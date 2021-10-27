@@ -19,6 +19,9 @@ const intentsList = [
 ]
 const client = new Client( { intents: intentsList } );
 
+// This attribute is used to store the musics.
+// The music at position 0 is the one being played.
+client.queue = new Collection();
 
 client.commands = new Collection();
 (
