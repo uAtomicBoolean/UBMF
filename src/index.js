@@ -6,7 +6,7 @@
  */
 
 
-const { TOKEN } = require( './files/config.json' );
+const { TOKEN, CLIENT_ID, GUILD_ID } = require( './files/config.json' );
 const { Client, Collection, Intents } = require( 'discord.js' );
 const { loadCommands, loadEvents } = require( "./utils/load_files" );
 const { loadCommandsToGuild } = require( "./utils/register_commands" );
@@ -26,6 +26,8 @@ client.commands = new Collection();
 		await loadCommands( client );
 		await loadEvents( client );
 
-		await loadCommandsToGuild( client.id )
+		await loadCommandsToGuild( CLIENT_ID, GUILD_ID )
+
+		await client.login( TOKEN );
 	}
 )();
