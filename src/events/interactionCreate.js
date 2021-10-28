@@ -22,7 +22,7 @@ const { CommandInteraction, ButtonInteraction, Client } = require( "discord.js" 
 async function execute( interaction, client ) {
 	if ( interaction.isCommand() ) {
 		if ( !interaction.inGuild() ) {
-			await interaction.reply( "You cannot use the *set* command outside of a server!" );
+			await interaction.reply( "Vous devez utiliser les commandes dans un serveur!" );
 			return;
 		}
 		await client.commands.get( interaction.commandName ).execute( interaction, client );

@@ -16,8 +16,9 @@ const slashCommand = new SlashCommandBuilder()
 	.setName( "play" )
 	.setDescription( "Joue une musique, playlist ou le résultat d'une recherche passée en paramètre" )
 	.addStringOption( option =>
-		option.setName( "option" )
+		option.setName( "musique" )
 			.setDescription( "Lien de la musique/playlist ou une recherche." )
+			.setRequired( true )
 	);
 
 
@@ -28,16 +29,54 @@ const slashCommand = new SlashCommandBuilder()
  */
 async function execute( interaction, client ) {
 	// Checking is the member is in a voice channel.
-	const member = await interaction.guild.members.fetch(interaction.user.id);
-	const voiceChannel = member.voice; // TODO check with voice.channel to get voiceChannel connected
-	console.log(voiceChannel)
-	if ( !voiceChannel ) {
-		await interaction.reply( "Tu dois être connecté dans un vocal!" );
-		return;
+	const member = await interaction.guild.members.fetch( interaction.user.id );
+	const voiceChannelId = member.voice.channelId;
+
+	if ( !voiceChannelId ) return interaction.reply( "Tu dois être connecté dans un vocal!" );
+
+	// Checking if the argument is an URL or keywords for a search.
+	let musicInfo;
+	const musicParam = interaction.options.getString( "musique" );
+	if ( ytdl.validateURL( musicParam ) ) {
+		const songInfo = await ytdl.getBasicInfo( musicParam );
+		// Creating a music object to keep the necessary data of the music.
+		musicInfo = {
+			title: songInfo.videoDetails.title,
+			author: songInfo.videoDetails.author.name,
+			url: songInfo.videoDetails.video_url,
+			thumbnail: songInfo.videoDetails.thumbnails[songInfo.videoDetails.thumbnails.length - 1].url,
+			duration: `${Math.floor( songInfo.videoDetails.lengthSeconds / 60 )}:` +
+						`${songInfo.videoDetails.lengthSeconds % 60}`,
+			lengthSeconds: songInfo.videoDetails.lengthSeconds
+		};
+	}
+	else {
+		// If the video is not an URL, then we search using yt-search.
+		const song = await videoFinder( musicParam );
+		if ( !song ) return interaction.reply( "Aucun résultats pour cette recherche!" );
+
+		musicInfo = {
+			title: song.title,
+			author: song.author.name,
+			url: song.url,
+			thumbnail: song.thumbnail,
+			duration: song.timestamp,
+			lengthSeconds: song.seconds
+		};
 	}
 
-	// The user is connected in a voice channel.
-	await interaction.reply( "nice!" );
+	// TODO think how to check if the bot is already playing and implement that.
+	// Adding the music to the queue.
+	client.queue.push( musicInfo );
+
+
+	await interaction.reply( "oui" );
+}
+
+// TODO function documentation
+async function videoFinder( keywords ) {
+	const searchResult = await ytsearch( keywords );
+	return searchResult.videos.length > 1 ? searchResult.videos[0] : null;
 }
 
 

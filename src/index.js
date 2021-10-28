@@ -21,7 +21,7 @@ const client = new Client( { intents: intentsList } );
 
 // This attribute is used to store the musics.
 // The music at position 0 is the one being played.
-client.queue = new Collection();
+client.queue = [];
 
 client.commands = new Collection();
 (
@@ -29,7 +29,7 @@ client.commands = new Collection();
 		await loadCommands( client );
 		await loadEvents( client );
 
-		await loadCommandsToGuild( CLIENT_ID, GUILD_ID )
+		//await loadCommandsToGuild( CLIENT_ID, GUILD_ID )
 
 		await client.login( TOKEN );
 	}
