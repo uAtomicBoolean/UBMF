@@ -28,11 +28,22 @@ const slashCommand = new SlashCommandBuilder()
  * @param {Client} client The bot's client.
  */
 async function execute( interaction, client ) {
+	// Checking if the bot is already active.
+	let isConnected = false;
+	// TODO add a verification to check if the user is in the vocal with the bot.
+	//		if the bot is with the user, then we do not connect it.
+	if ( client.voice.adapters.length ) {
+		// Checking if its with the user here.
+
+		await interaction.reply( "Le bot est déjà dans un salon vocal!" );
+		return;
+	}
+
 	// Checking is the member is in a voice channel.
 	const member = await interaction.guild.members.fetch( interaction.user.id );
 	const voiceChannelId = member.voice.channelId;
-
 	if ( !voiceChannelId ) return interaction.reply( "Tu dois être connecté dans un vocal!" );
+
 
 	// Checking if the argument is an URL or keywords for a search.
 	let musicInfo;
@@ -65,15 +76,24 @@ async function execute( interaction, client ) {
 		};
 	}
 
-	// TODO think how to check if the bot is already playing and implement that.
-	// Adding the music to the queue.
+
+	// Connecting to the voice chat.
+	if ( !isConnected ) {
+	}
+
+
 	client.queue.push( musicInfo );
 
 
 	await interaction.reply( "oui" );
 }
 
-// TODO function documentation
+
+/**
+ * Search a video on youtube and return the first result.
+ * @param {string} keywords 
+ * @returns An object containing the video's data.
+ */
 async function videoFinder( keywords ) {
 	const searchResult = await ytsearch( keywords );
 	return searchResult.videos.length > 1 ? searchResult.videos[0] : null;
