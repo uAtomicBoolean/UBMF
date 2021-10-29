@@ -23,6 +23,10 @@ const client = new Client( { intents: intentsList } );
 // The music at position 0 is the one being played.
 client.queue = [];
 
+// This attribute is used to store the ID of the current vocal channel
+// where the bot is streaming music.
+client.currentVocalChannelId;
+
 client.commands = new Collection();
 (
 	async () => {
