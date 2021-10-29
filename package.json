@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "dependencies": {
     "@discordjs/builders": "^0.7.0",
+    "@discordjs/voice": "^0.6.0",
     "discord-api-types": "^0.24.0",
     "discord.js": "^13.2.0",
     "yt-search": "^2.10.2",

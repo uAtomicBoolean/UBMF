@@ -7,6 +7,7 @@
 
 const { SlashCommandBuilder } = require( "@discordjs/builders" );
 const { CommandInteraction, Client } = require( "discord.js" );
+const { joinVoiceChannel } = require( "@discordjs/voice" );
 
 const ytdl = require( "ytdl-core" );
 const ytsearch = require( "yt-search" );
@@ -79,6 +80,12 @@ async function execute( interaction, client ) {
 
 	// Connecting to the voice chat.
 	if ( !isConnected ) {
+		const channel = await interaction.guild.channels.fetch( voiceChannelId );
+		const connection = joinVoiceChannel( {
+			channelId: voiceChannelId,
+			guildId: interaction.guildId
+		});
+		client.currentVocalChannelId = voiceChannelId;
 	}
 
 
