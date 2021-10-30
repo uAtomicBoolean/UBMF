@@ -6,8 +6,12 @@
 
 
 const { SlashCommandBuilder } = require( "@discordjs/builders" );
-const { CommandInteraction, Client } = require( "discord.js" );
-const { joinVoiceChannel } = require( "@discordjs/voice" );
+const { CommandInteraction, Client, Guild } = require( "discord.js" );
+const {
+	joinVoiceChannel,
+	generateDependencyReport,
+	VoiceConnection
+} = require( "@discordjs/voice" );
 
 const ytdl = require( "ytdl-core" );
 const ytsearch = require( "yt-search" );
@@ -31,14 +35,7 @@ const slashCommand = new SlashCommandBuilder()
 async function execute( interaction, client ) {
 	// Checking if the bot is already active.
 	let isConnected = false;
-	// TODO add a verification to check if the user is in the vocal with the bot.
-	//		if the bot is with the user, then we do not connect it.
-	if ( client.voice.adapters.length ) {
-		// Checking if its with the user here.
-
-		await interaction.reply( "Le bot est déjà dans un salon vocal!" );
-		return;
-	}
+	// TODO add a verification later to check if the bot is already connected in a channel in the interaction's server.
 
 	// Checking is the member is in a voice channel.
 	const member = await interaction.guild.members.fetch( interaction.user.id );
@@ -49,45 +46,17 @@ async function execute( interaction, client ) {
 	// Checking if the argument is an URL or keywords for a search.
 	let musicInfo;
 	const musicParam = interaction.options.getString( "musique" );
-	if ( ytdl.validateURL( musicParam ) ) {
-		const songInfo = await ytdl.getBasicInfo( musicParam );
-		// Creating a music object to keep the necessary data of the music.
-		musicInfo = {
-			title: songInfo.videoDetails.title,
-			author: songInfo.videoDetails.author.name,
-			url: songInfo.videoDetails.video_url,
-			thumbnail: songInfo.videoDetails.thumbnails[songInfo.videoDetails.thumbnails.length - 1].url,
-			duration: `${Math.floor( songInfo.videoDetails.lengthSeconds / 60 )}:` +
-						`${songInfo.videoDetails.lengthSeconds % 60}`,
-			lengthSeconds: songInfo.videoDetails.lengthSeconds
-		};
-	}
-	else {
-		// If the video is not an URL, then we search using yt-search.
-		const song = await videoFinder( musicParam );
-		if ( !song ) return interaction.reply( "Aucun résultats pour cette recherche!" );
-
-		musicInfo = {
-			title: song.title,
-			author: song.author.name,
-			url: song.url,
-			thumbnail: song.thumbnail,
-			duration: song.timestamp,
-			lengthSeconds: song.seconds
-		};
-	}
-
+	if ( ytdl.validateURL( musicParam ) )
+		musicInfo = await getSongInfoFromUrl( musicParam );
+	else
+		musicInfo = await getSongInfoFromSearch( musicParam );
+		if ( !musicInfo ) return interaction.reply( "Aucun résultats pour cette recherche!" );
 
 	// Connecting to the voice chat.
 	if ( !isConnected ) {
-		const channel = await interaction.guild.channels.fetch( voiceChannelId );
-		const connection = joinVoiceChannel( {
-			channelId: voiceChannelId,
-			guildId: interaction.guildId
-		});
+		const connection = await connectToVoiceChannel( voiceChannelId, interaction.guild );
 		client.currentVocalChannelId = voiceChannelId;
 	}
-
 
 	client.queue.push( musicInfo );
 
@@ -104,6 +73,64 @@ async function execute( interaction, client ) {
 async function videoFinder( keywords ) {
 	const searchResult = await ytsearch( keywords );
 	return searchResult.videos.length > 1 ? searchResult.videos[0] : null;
+}
+
+
+/**
+ * Get the song information when the user gave an url.
+ * @param {string} songUrl The url of the youtube video.
+ * @returns {Promise<{duration: string, thumbnail: *, author: string, lengthSeconds: string, title: string, url: string}>}
+ */
+async function getSongInfoFromUrl( songUrl ) {
+	const songInfo = await ytdl.getBasicInfo( songUrl );
+	return {
+		title: songInfo.videoDetails.title,
+		author: songInfo.videoDetails.author.name,
+		url: songInfo.videoDetails.video_url,
+		thumbnail: songInfo.videoDetails.thumbnails[songInfo.videoDetails.thumbnails.length - 1].url,
+		duration: `${Math.floor( songInfo.videoDetails.lengthSeconds / 60 )}:` +
+			`${songInfo.videoDetails.lengthSeconds % 60}`,
+		lengthSeconds: songInfo.videoDetails.lengthSeconds
+	};
+}
+
+
+/**
+ * Get the song information when the user gave a search.
+ * @param {string} searchKeywords The search entered by the user.
+ * @returns {Promise<{duration, thumbnail: *, author, lengthSeconds: (number|*), title, url}|null>}
+ */
+async function getSongInfoFromSearch( searchKeywords ) {
+	// If the video is not an URL, then we search using yt-search.
+	const song = await videoFinder( searchKeywords );
+	if ( !song ) return null;
+
+	return {
+		title: song.title,
+		author: song.author.name,
+		url: song.url,
+		thumbnail: song.thumbnail,
+		duration: song.timestamp,
+		lengthSeconds: song.seconds
+	};
+}
+
+
+/**
+ * Connect the bot to a voice channel.
+ * Returns the connection created.
+ * @param {string} voiceChannelId The ID of the channel of destination.
+ * @param {Guild} guild The Guild object of the guild that contains the channel of destination.
+ * @returns {Promise<VoiceConnection>}
+ */
+async function connectToVoiceChannel( voiceChannelId, guild ) {
+	return joinVoiceChannel(
+		{
+			channelId: voiceChannelId,
+			guidId: guild.id,
+			adapterCreator: guild.voiceAdapterCreator
+		}
+	);
 }
 
 
