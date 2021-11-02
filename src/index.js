@@ -19,13 +19,10 @@ const intentsList = [
 ]
 const client = new Client( { intents: intentsList } );
 
-// This attribute is used to store the musics.
-// The music at position 0 is the one being played.
-client.queue = [];
-
-// This attribute is used to store the ID of the current vocal channel
-// where the bot is streaming music.
-client.currentVocalChannelId = "";
+// This Map keeps the guilds' player, voice connection and channel's ID to allow multi-server use.
+// Key : guild's ID
+// Element : { player, voiceConnection, channelId }
+client.guildsPlayers = new Map();
 
 client.commands = new Collection();
 (

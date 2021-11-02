@@ -10,9 +10,9 @@ const { CommandInteraction, Client, Guild } = require( "discord.js" );
 const {
 	joinVoiceChannel,
 	VoiceConnectionStatus,
-	NoSubscriberBehavior,
 	createAudioResource,
-	createAudioPlayer
+	createAudioPlayer,
+	entersState
 } = require( '@discordjs/voice' );
 
 const ytdl = require( "ytdl-core" );
@@ -35,10 +35,11 @@ const slashCommand = new SlashCommandBuilder()
  * @param {Client} client The bot's client.
  */
 async function execute( interaction, client ) {
+	/*
 	// Checking is the member is in a voice channel.
 	const member = await interaction.guild.members.fetch( interaction.user.id );
 	const voiceChannelId = member.voice.channelId;
-	console.log( voiceChannelId );
+
 	if ( !voiceChannelId ) return interaction.reply( "Tu dois être connecté dans un vocal!" );
 
 
@@ -53,22 +54,54 @@ async function execute( interaction, client ) {
 
 	await interaction.reply( "Getting the bot ready!" );
 
-
 	// Connecting to the voice chat.
 	const connection = await connectToVoiceChannel( voiceChannelId, interaction.guild );
-
 	const player = createAudioPlayer();
-
 	connection.subscribe(player);
-	const resource = createAudioResource( "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" );
+
+	const stream = ytdl( musicInfo.url, {filter: "audioonly"} );
+	const resource = createAudioResource( stream );
 	player.play( resource );
+
+	client.guildsPlayers.set(
+		interaction.guildId,
+		{
+			voiceConnection: connection,
+			player: player,
+			channelId: voiceChannelId
+		}
+	);
 
 	connection.on('stateChange', (oldState, newState) => {
 		console.log(`Connection transitioned from ${oldState.status} to ${newState.status}`);
 	});
+
+	connection.on( "error", error => {
+		console.log( "Une erreur est survenue!\nFichier play.js -> connection.on(error)");
+	});
+
+	connection.on( VoiceConnectionStatus.Disconnected, async ( oldState, newState ) => {
+		try {
+			await Promise.race([
+				entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
+				entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
+			]);
+		}
+		catch( error ) {
+			console.log( "Connection détruite!" );
+			connection.destroy();
+		}
+	});
+
+
 	player.on('stateChange', (oldState, newState) => {
 		console.log(`Audio player transitioned from ${oldState.status} to ${newState.status}`);
 	});
+
+	player.on( "error", error => {
+		console.error( "Une erreur est survenue avec le player!\nFichier : play.js -> player.on(error)" );
+		console.log( error );
+	}); */
 }
 
 
