@@ -6,7 +6,7 @@
 
 
 const { SlashCommandBuilder } = require( "@discordjs/builders" );
-const { CommandInteraction, Client, Guild } = require( "discord.js" );
+const { CommandInteraction, Client, Guild, MessageEmbed } = require( "discord.js" );
 const {
 	joinVoiceChannel,
 	VoiceConnectionStatus,
@@ -23,7 +23,7 @@ const slashCommand = new SlashCommandBuilder()
 	.setName( "play" )
 	.setDescription( "Joue une musique, playlist ou le résultat d'une recherche passée en paramètre" )
 	.addStringOption( option =>
-		option.setName( "musique" )
+		option.setName( "music" )
 			.setDescription( "Lien de la musique/playlist ou une recherche." )
 			.setRequired( true )
 	);
@@ -35,73 +35,76 @@ const slashCommand = new SlashCommandBuilder()
  * @param {Client} client The bot's client.
  */
 async function execute( interaction, client ) {
-	/*
-	// Checking is the member is in a voice channel.
+	// Starting by checking is the user is in a voice channel.
 	const member = await interaction.guild.members.fetch( interaction.user.id );
 	const voiceChannelId = member.voice.channelId;
+	if ( !voiceChannelId ) return interaction.reply( "You need to be in a voice channel to use this command!" );
 
-	if ( !voiceChannelId ) return interaction.reply( "Tu dois être connecté dans un vocal!" );
 
+	// Checking if the bot is already in a voice channel in this guild.
+	const guildData = client.guildsPlayers.get( interaction.guildId );
+	if ( guildData ) {
+		if ( voiceChannelId !== guildData.channelId )
+			return interaction.reply( "You need to be in the same channel as the bot!" );
 
-	// Checking if the argument is an URL or keywords for a search.
-	let musicInfo;
-	const musicParam = interaction.options.getString( "musique" );
-	if ( ytdl.validateURL( musicParam ) )
-		musicInfo = await getSongInfoFromUrl( musicParam );
-	else
-		musicInfo = await getSongInfoFromSearch( musicParam );
+		// Loading the music's information.
+		const musicInfo = await getMusicInfo( interaction.options.getString( "music" ) );
 		if ( !musicInfo ) return interaction.reply( "Aucun résultats pour cette recherche!" );
 
-	await interaction.reply( "Getting the bot ready!" );
+		// Adding the song to the queue for the server.
 
-	// Connecting to the voice chat.
-	const connection = await connectToVoiceChannel( voiceChannelId, interaction.guild );
-	const player = createAudioPlayer();
-	connection.subscribe(player);
+		// Sending the annoucement embed.
+		await interaction.reply({ embeds: [await getQueueMusicEmbed( musicInfo, interaction.user )] } );
+	}
+	else {
 
-	const stream = ytdl( musicInfo.url, {filter: "audioonly"} );
-	const resource = createAudioResource( stream );
-	player.play( resource );
+		// Creating the guild's data.
+		const musicInfo = await getMusicInfo( interaction.options.getString( "music" ) );
 
-	client.guildsPlayers.set(
-		interaction.guildId,
-		{
-			voiceConnection: connection,
-			player: player,
+		const newGuildData = {
+			connection: await connectToVoiceChannel(voiceChannelId, interaction.guild),
+			player: createAudioPlayer(),
 			channelId: voiceChannelId
-		}
-	);
-
-	connection.on('stateChange', (oldState, newState) => {
-		console.log(`Connection transitioned from ${oldState.status} to ${newState.status}`);
-	});
-
-	connection.on( "error", error => {
-		console.log( "Une erreur est survenue!\nFichier play.js -> connection.on(error)");
-	});
-
-	connection.on( VoiceConnectionStatus.Disconnected, async ( oldState, newState ) => {
-		try {
-			await Promise.race([
-				entersState(connection, VoiceConnectionStatus.Signalling, 5_000),
-				entersState(connection, VoiceConnectionStatus.Connecting, 5_000),
-			]);
-		}
-		catch( error ) {
-			console.log( "Connection détruite!" );
-			connection.destroy();
-		}
-	});
+		};
 
 
-	player.on('stateChange', (oldState, newState) => {
-		console.log(`Audio player transitioned from ${oldState.status} to ${newState.status}`);
-	});
+		// Starting the music bot.
+		newGuildData.connection.subscribe( newGuildData.player );
+		const stream = ytdl( musicInfo.url, { filter: "audioonly" } );
+		const resource = createAudioResource( stream );
+		newGuildData.player.play( resource );
 
-	player.on( "error", error => {
-		console.error( "Une erreur est survenue avec le player!\nFichier : play.js -> player.on(error)" );
-		console.log( error );
-	}); */
+		newGuildData.connection.on( "error", error => {
+			console.log( "Une erreur est survenue!\nFichier play.js -> connection.on(error)");
+		});
+
+		newGuildData.connection.on( VoiceConnectionStatus.Disconnected, async ( oldState, newState ) => {
+			try {
+				await Promise.race([
+					entersState(newGuildData.connection, VoiceConnectionStatus.Signalling, 5_000),
+					entersState(newGuildData.connection, VoiceConnectionStatus.Connecting, 5_000),
+				]);
+			}
+			catch( error ) {
+				console.log( "Connection détruite!" );
+				newGuildData.connection.destroy();
+			}
+		});
+
+
+		newGuildData.player.on('stateChange', (oldState, newState) => {
+			console.log(`Audio player transitioned from ${oldState.status} to ${newState.status}`);
+		});
+
+		newGuildData.player.on( "error", error => {
+			console.error( "Une erreur est survenue avec le player!\nFichier : play.js -> player.on(error)" );
+			console.log( error );
+		});
+
+		client.guildsPlayers.set( interaction.guildId, newGuildData );
+		// Sending the annoucement embed.
+		await interaction.reply({ embeds: [await getPlayMusicEmbed( musicInfo )] } );
+	}
 }
 
 
@@ -113,6 +116,19 @@ async function execute( interaction, client ) {
 async function videoFinder( keywords ) {
 	const searchResult = await ytsearch( keywords );
 	return searchResult.videos.length > 1 ? searchResult.videos[0] : null;
+}
+
+
+/**
+ * Get the music's information in function of the source of the search (url or keywords). Then puts the information in
+ * an object and returns it.
+ * @param {string} param The URL or keywords search for the music.
+ */
+async function getMusicInfo( param ) {
+	if ( ytdl.validateURL( param ) )
+		return await getSongInfoFromUrl( param );
+	else
+		return await getSongInfoFromSearch( param );
 }
 
 
@@ -170,6 +186,28 @@ async function connectToVoiceChannel( voiceChannelId, guild ) {
 			adapterCreator: guild.voiceAdapterCreator
 		}
 	);
+}
+
+
+async function getQueueMusicEmbed( musicInfo, user ) {
+	return new MessageEmbed()
+		.setColor( "#00a4ff" )
+		.setAuthor( "| Music added to the queue", user.avatarURL() )
+		.setThumbnail( musicInfo.thumbnail )
+		.setDescription(
+			`[${musicInfo.title}](${musicInfo.url}) by ${musicInfo.author} [${musicInfo.duration}]`
+		);
+}
+
+
+async function getPlayMusicEmbed( musicInfo ) {
+	return new MessageEmbed()
+		.setColor( "#00a4ff" )
+		.setAuthor( "Now playing" )
+		.setThumbnail( musicInfo.thumbnail )
+		.setDescription(
+			`[${musicInfo.title}](${musicInfo.url}) by ${musicInfo.author} [${musicInfo.duration}]`
+		);
 }
 
 

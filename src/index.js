@@ -21,7 +21,7 @@ const client = new Client( { intents: intentsList } );
 
 // This Map keeps the guilds' player, voice connection and channel's ID to allow multi-server use.
 // Key : guild's ID
-// Element : { player, voiceConnection, channelId }
+// Element : { player, connection, channelId }
 client.guildsPlayers = new Map();
 
 client.commands = new Collection();
@@ -30,7 +30,7 @@ client.commands = new Collection();
 		await loadCommands( client );
 		await loadEvents( client );
 
-		//await loadCommandsToGuild( CLIENT_ID, GUILD_ID )
+		// await loadCommandsToGuild( CLIENT_ID, GUILD_ID )
 
 		await client.login( TOKEN );
 	}
