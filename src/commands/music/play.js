@@ -9,9 +9,11 @@ const { SlashCommandBuilder } = require( "@discordjs/builders" );
 const { CommandInteraction, Client, Guild } = require( "discord.js" );
 const {
 	joinVoiceChannel,
-	generateDependencyReport,
-	VoiceConnection
-} = require( "@discordjs/voice" );
+	VoiceConnectionStatus,
+	NoSubscriberBehavior,
+	createAudioResource,
+	createAudioPlayer
+} = require( '@discordjs/voice' );
 
 const ytdl = require( "ytdl-core" );
 const ytsearch = require( "yt-search" );
@@ -33,13 +35,10 @@ const slashCommand = new SlashCommandBuilder()
  * @param {Client} client The bot's client.
  */
 async function execute( interaction, client ) {
-	// Checking if the bot is already active.
-	let isConnected = false;
-	// TODO add a verification later to check if the bot is already connected in a channel in the interaction's server.
-
 	// Checking is the member is in a voice channel.
 	const member = await interaction.guild.members.fetch( interaction.user.id );
 	const voiceChannelId = member.voice.channelId;
+	console.log( voiceChannelId );
 	if ( !voiceChannelId ) return interaction.reply( "Tu dois être connecté dans un vocal!" );
 
 
@@ -52,16 +51,24 @@ async function execute( interaction, client ) {
 		musicInfo = await getSongInfoFromSearch( musicParam );
 		if ( !musicInfo ) return interaction.reply( "Aucun résultats pour cette recherche!" );
 
+	await interaction.reply( "Getting the bot ready!" );
+
+
 	// Connecting to the voice chat.
-	if ( !isConnected ) {
-		const connection = await connectToVoiceChannel( voiceChannelId, interaction.guild );
-		client.currentVocalChannelId = voiceChannelId;
-	}
+	const connection = await connectToVoiceChannel( voiceChannelId, interaction.guild );
 
-	client.queue.push( musicInfo );
+	const player = createAudioPlayer();
 
+	connection.subscribe(player);
+	const resource = createAudioResource( "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3" );
+	player.play( resource );
 
-	await interaction.reply( "oui" );
+	connection.on('stateChange', (oldState, newState) => {
+		console.log(`Connection transitioned from ${oldState.status} to ${newState.status}`);
+	});
+	player.on('stateChange', (oldState, newState) => {
+		console.log(`Audio player transitioned from ${oldState.status} to ${newState.status}`);
+	});
 }
 
 
@@ -121,13 +128,12 @@ async function getSongInfoFromSearch( searchKeywords ) {
  * Returns the connection created.
  * @param {string} voiceChannelId The ID of the channel of destination.
  * @param {Guild} guild The Guild object of the guild that contains the channel of destination.
- * @returns {Promise<VoiceConnection>}
  */
 async function connectToVoiceChannel( voiceChannelId, guild ) {
 	return joinVoiceChannel(
 		{
 			channelId: voiceChannelId,
-			guidId: guild.id,
+			guildId: guild.id,
 			adapterCreator: guild.voiceAdapterCreator
 		}
 	);

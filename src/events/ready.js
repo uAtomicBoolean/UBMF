@@ -7,6 +7,7 @@
 
 
 const { Client } = require( "discord.js" );
+const voice = require( "@discordjs/voice" );
 
 
 /* ----------------------------------------------- */
