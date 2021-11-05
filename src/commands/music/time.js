@@ -1,12 +1,12 @@
 /**
  * @author Benjamin Guirlet
  * @description
- *      Handler for the command 'pause'
+ *      Handler for the command 'time'.
  */
 
 
 const { EMBED_COLOR } = require( "../../files/config.json" );
-const { checkUserIsConnected } = require( "../../utils/utils" );
+const { checkUserIsConnected, getIntDate } = require( "../../utils/utils" );
 
 const { SlashCommandBuilder } = require( "@discordjs/builders" );
 const { CommandInteraction, Client, MessageEmbed } = require( "discord.js" );
@@ -14,8 +14,8 @@ const { CommandInteraction, Client, MessageEmbed } = require( "discord.js" );
 
 
 const slashCommand = new SlashCommandBuilder()
-	.setName( "pause" )
-	.setDescription( "Met en pause la musique en cours de lecture." );
+	.setName( "time" )
+	.setDescription( "Affiche le temps restant avant la fin de la musique." );
 
 
 /* ----------------------------------------------- */
@@ -32,12 +32,18 @@ async function execute( interaction, client ) {
 
 	const guildId = interaction.guildId;
 	if ( client.guildsData.has( guildId ) ) {
-		client.guildsData.get( guildId ).player.pause( true );
+		const guildData = client.guildsData.get( guildId );
+		const remainingTimeSeconds = guildData.currentSong.lengthSeconds - (getIntDate() - guildData.currentSong.intDate);
+		const remainingTime = `${Math.floor( remainingTimeSeconds / 60 )}:${remainingTimeSeconds % 60}`;
+
 		await interaction.reply( {
 			embeds: [
 				new MessageEmbed()
 					.setColor( EMBED_COLOR )
-					.setAuthor( "| Musique mise en pause!", interaction.user.avatarURL() )
+					.setAuthor(
+						`| Il reste [${remainingTime}] sur [${guildData.currentSong.duration}]!`,
+						interaction.user.avatarURL()
+					)
 			]
 		});
 	}

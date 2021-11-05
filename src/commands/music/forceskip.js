@@ -1,7 +1,7 @@
 /**
  * @author Benjamin Guirlet
  * @description
- *      Handler for the command 'pause'
+ *      Handler for the command 'forceskip'.
  */
 
 
@@ -14,8 +14,8 @@ const { CommandInteraction, Client, MessageEmbed } = require( "discord.js" );
 
 
 const slashCommand = new SlashCommandBuilder()
-	.setName( "pause" )
-	.setDescription( "Met en pause la musique en cours de lecture." );
+	.setName( "forceskip" )
+	.setDescription( "Passe à la musique suivante sans proposer de vote. Il faut les permissions MANAGE_MESSAGES!" );
 
 
 /* ----------------------------------------------- */
@@ -32,12 +32,12 @@ async function execute( interaction, client ) {
 
 	const guildId = interaction.guildId;
 	if ( client.guildsData.has( guildId ) ) {
-		client.guildsData.get( guildId ).player.pause( true );
+		client.guildsData.get( guildId ).player.stop();
 		await interaction.reply( {
 			embeds: [
 				new MessageEmbed()
 					.setColor( EMBED_COLOR )
-					.setAuthor( "| Musique mise en pause!", interaction.user.avatarURL() )
+					.setAuthor( "| Passage à la musique suivante!", interaction.user.avatarURL() )
 			]
 		});
 	}

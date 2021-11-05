@@ -7,6 +7,7 @@
 
 const { EMBED_COLOR } = require( "../../files/config.json" );
 const { checkUserIsConnected } = require( "../../utils/utils" );
+const { getIntDate } = require( "../../utils/utils" );
 
 const { SlashCommandBuilder } = require( "@discordjs/builders" );
 const { CommandInteraction, Client, MessageEmbed } = require( "discord.js" );
@@ -200,6 +201,9 @@ function playSong( guildId, guildsData ) {
 		r: '100K',
 	}, { stdio: ['ignore', 'pipe', 'ignore'] });
 
+	guildsData.get( guildId ).player.on( dvoice.AudioPlayerStatus.Playing, () => {
+		guildData.currentSong.intDate = getIntDate();
+	});
 	guildsData.get( guildId ).player.play( dvoice.createAudioResource( stream.stdout ) );
 
 	guildData.commandChannel.send( { embeds: [getPlayMusicEmbed( musicInfo )] } );

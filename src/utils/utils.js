@@ -35,9 +35,20 @@ async function checkUserIsConnected( interaction ) {
 }
 
 
+/**
+ * Generates an integer based on the current date and time both converted in seconds.
+ * @returns {number} The integer generated.
+ */
+function getIntDate() {
+	const date = new Date();
+	return (date.getDay() * 3600 * 24) + (date.getHours() * 3600) + (date.getMinutes() * 60) + date.getSeconds();
+}
+
+
 /* ----------------------------------------------- */
 /* MODULE EXPORTS                                  */
 /* ----------------------------------------------- */
 module.exports = {
-	checkUserIsConnected
+	checkUserIsConnected,
+	getIntDate
 }

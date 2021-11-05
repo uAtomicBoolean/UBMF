@@ -37,8 +37,7 @@ async function execute( interaction, client ) {
 			embeds: [
 				new MessageEmbed()
 					.setColor( EMBED_COLOR )
-					.setTitle( "Lecture de la musique reprise!" )
-					.setAuthor( interaction.user.username, interaction.user.avatarURL() )
+					.setAuthor( "| Lecture de la musique reprise!", interaction.user.avatarURL() )
 			]
 		});
 	}
@@ -47,8 +46,7 @@ async function execute( interaction, client ) {
 			embeds: [
 				new MessageEmbed()
 					.setColor( EMBED_COLOR )
-					.setTitle( "Le bot n'est pas connecté à un vocal!" )
-					.setAuthor( interaction.user.username, interaction.user.avatarURL() )
+					.setAuthor( "| Le bot n'est pas connecté à un vocal!", interaction.user.avatarURL() )
 			]
 		});
 	}

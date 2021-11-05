@@ -15,7 +15,7 @@ const { CommandInteraction, Client, MessageEmbed } = require( "discord.js" );
 
 const slashCommand = new SlashCommandBuilder()
 	.setName( "stop" )
-	.setDescription( "Arrête la session de musique du bot." );
+	.setDescription( "Arrête le bot." );
 
 
 /* ----------------------------------------------- */
@@ -38,8 +38,7 @@ async function execute( interaction, client ) {
 			embeds: [
 				new MessageEmbed()
 					.setColor( EMBED_COLOR )
-					.setTitle( "Fin de la session!" )
-					.setAuthor( interaction.user.username, interaction.user.avatarURL() )
+					.setAuthor( "| Bot déconnecté!", interaction.user.avatarURL() )
 			]
 		});
 	}
@@ -48,8 +47,7 @@ async function execute( interaction, client ) {
 			embeds: [
 				new MessageEmbed()
 					.setColor( EMBED_COLOR )
-					.setTitle( "Le bot n'est pas connecté à un vocal!" )
-					.setAuthor( interaction.user.username, interaction.user.avatarURL() )
+					.setAuthor( "| Le bot n'est pas connecté à un vocal!", interaction.user.avatarURL() )
 			]
 		});
 	}
