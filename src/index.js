@@ -6,9 +6,10 @@
  */
 
 
-const { TOKEN } = require( "./files/config.json" );
+const { TOKEN, CLIENT_ID, GUILD_ID } = require( "./files/config.json" );
 const { Client, Collection, Intents } = require( 'discord.js' );
 const { loadCommands, loadEvents } = require( "./utils/load_files" );
+const { loadCommandsToGuild } = require( "./utils/register_commands" );
 
 
 const intentsList = [

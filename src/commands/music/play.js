@@ -5,8 +5,12 @@
  */
 
 
+const { EMBED_COLOR } = require( "../../files/config.json" );
+const { checkUserIsConnected } = require( "../../utils/utils" );
+
 const { SlashCommandBuilder } = require( "@discordjs/builders" );
 const { CommandInteraction, Client, MessageEmbed } = require( "discord.js" );
+
 const ytdl = require( "ytdl-core" );
 const youtubedl = require( "youtube-dl-exec" ).raw;
 const ytsearch = require( "yt-search" );
@@ -34,9 +38,8 @@ const slashCommand = new SlashCommandBuilder()
  */
 async function execute( interaction, client ) {
 	// Starting by checking is the user is in a voice channel.
-	const member = await interaction.guild.members.fetch( interaction.user.id );
-	const voiceChannelId = member.voice.channelId;
-	if ( !voiceChannelId ) return interaction.reply( "You need to be in a voice channel to use this command!" );
+	const voiceChannelId = await checkUserIsConnected( interaction )
+	if ( !voiceChannelId ) return;
 
 
 
@@ -205,7 +208,7 @@ function playSong( guildId, guildsData ) {
 
 function getQueueMusicEmbed( musicInfo ) {
 	return new MessageEmbed()
-		.setColor( "#00a4ff" )
+		.setColor( EMBED_COLOR )
 		.setAuthor( "| Music added to the queue", musicInfo.userAvatarUrl )
 		.setThumbnail( musicInfo.thumbnail )
 		.setDescription(
@@ -216,7 +219,7 @@ function getQueueMusicEmbed( musicInfo ) {
 
 function getPlayMusicEmbed( musicInfo ) {
 	return new MessageEmbed()
-		.setColor( "#00a4ff" )
+		.setColor( EMBED_COLOR )
 		.setAuthor( "| Now playing", musicInfo.userAvatarUrl )
 		.setThumbnail( musicInfo.thumbnail )
 		.setDescription(
