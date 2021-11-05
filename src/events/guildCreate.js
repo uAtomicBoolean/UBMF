@@ -1,23 +1,26 @@
 /**
  * @author Benjamin Guirlet
  * @file
- * 		Handler for the 'ready' event.
+ * 		Handler for the 'guildCreate' event.
  * 		The main code is in the function 'execute()'.
  */
 
 
-const { Client } = require( "discord.js" );
+const { Client, Guild } = require( "discord.js" );
+const { loadCommandsToGuild } = require( "../utils/register_commands" );
+const { CLIENT_ID } = require( "../files/config.json" );
 
 
 /* ----------------------------------------------- */
 /* FUNCTIONS                                       */
 /* ----------------------------------------------- */
 /**
- * The handler for the event 'ready'.
+ * The handler for the event 'guildCreate'.
+ * @param {Guild} guild The guild joined by the bot.
  * @param {Client} client The client that created the interaction.
  */
-async function execute( client ) {
-	console.log( "Ready!" );
+async function execute( guild, client ) {
+	await loadCommandsToGuild( CLIENT_ID, guild.id );
 }
 
 
@@ -25,6 +28,6 @@ async function execute( client ) {
 /* MODULE EXPORTS                                  */
 /* ----------------------------------------------- */
 module.exports = {
-	name: 'ready',
+	name: 'guildCreate',
 	execute
 };

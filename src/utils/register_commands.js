@@ -12,6 +12,9 @@ const { TOKEN } = require( "../files/config.json" );
 const fs = require( "fs" );
 
 
+/* ----------------------------------------------- */
+/* FUNCTIONS                                       */
+/* ----------------------------------------------- */
 /**
  * Load all the commands into the newly joined/created server.
  * @param {string} clientId The client's ID.
@@ -43,6 +46,9 @@ async function loadCommandsToGuild( clientId, guildId ) {
 }
 
 
+/* ----------------------------------------------- */
+/* MODULE EXPORTS                                  */
+/* ----------------------------------------------- */
 module.exports = {
 	loadCommandsToGuild
 }

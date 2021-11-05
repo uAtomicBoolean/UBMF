@@ -9,6 +9,9 @@ const fs = require( "fs" );
 const { Client } = require( "discord.js" );
 
 
+/* ----------------------------------------------- */
+/* FUNCTIONS                                       */
+/* ----------------------------------------------- */
 /**
  * Load the commands into the client.
  * @param {Client} client The bot's client.
@@ -50,6 +53,9 @@ async function loadEvents( client ) {
 }
 
 
+/* ----------------------------------------------- */
+/* MODULE EXPORTS                                  */
+/* ----------------------------------------------- */
 module.exports = {
 	loadCommands,
 	loadEvents
