@@ -5,6 +5,14 @@
  */
 
 
-module.exports = {
+const mysql = require( "mysql2" );
 
+
+async function addMusicToDatabase( guildId, musicInfo ) {
+
+}
+
+
+module.exports = {
+	addMusicToDatabase
 }

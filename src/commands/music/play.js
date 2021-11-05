@@ -7,16 +7,16 @@
 
 const { SlashCommandBuilder } = require( "@discordjs/builders" );
 const { CommandInteraction, Client, Guild, MessageEmbed } = require( "discord.js" );
+const ytdl = require( "ytdl-core" );
+const youtubedl = require( "youtube-dl-exec" ).raw;
+const ytsearch = require( "yt-search" );
 const {
 	joinVoiceChannel,
-	VoiceConnectionStatus,
 	createAudioResource,
-	createAudioPlayer,
-	entersState
+	createAudioPlayer
 } = require( '@discordjs/voice' );
+const sql = require( "../../utils/sqlManager" );
 
-const ytdl = require( "ytdl-core" );
-const ytsearch = require( "yt-search" );
 
 
 const slashCommand = new SlashCommandBuilder()
@@ -41,70 +41,67 @@ async function execute( interaction, client ) {
 	if ( !voiceChannelId ) return interaction.reply( "You need to be in a voice channel to use this command!" );
 
 
-	// Checking if the bot is already in a voice channel in this guild.
-	const guildData = client.guildsPlayers.get( interaction.guildId );
-	if ( guildData ) {
-		if ( voiceChannelId !== guildData.channelId )
-			return interaction.reply( "You need to be in the same channel as the bot!" );
+	// TODO the play function.
+	/*
+		For that, we need to check if the bot is already in vocal, and if it is, if the user is with him.
+		If not, the command fail.
+		Else, we get the music information, create the ressource of the music.
 
-		// Loading the music's information.
-		const musicInfo = await getMusicInfo( interaction.options.getString( "music" ) );
-		if ( !musicInfo ) return interaction.reply( "Aucun résultats pour cette recherche!" );
+		We have to manage the error in case the music is not found (search).
 
-		// Adding the song to the queue for the server.
-
-		// Sending the annoucement embed.
-		await interaction.reply({ embeds: [await getQueueMusicEmbed( musicInfo, interaction.user )] } );
-	}
-	else {
-
-		// Creating the guild's data.
-		const musicInfo = await getMusicInfo( interaction.options.getString( "music" ) );
-
-		const newGuildData = {
-			connection: await connectToVoiceChannel(voiceChannelId, interaction.guild),
-			player: createAudioPlayer(),
-			channelId: voiceChannelId
-		};
+		If the bot is already in vocal, we add the music to the queue in the db and to the player.
+			-> we send an embed indicating that we added the music to the queue with its position.
+		Else, we create the VoiceConnection and AudioPlayer, add them to the client.guildsPlayer map.
+			-> we send an embed indicating that the music will now be played.
+	 */
 
 
-		// Starting the music bot.
-		newGuildData.connection.subscribe( newGuildData.player );
-		const stream = ytdl( musicInfo.url, { filter: "audioonly" } );
-		const resource = createAudioResource( stream );
-		newGuildData.player.play( resource );
 
-		newGuildData.connection.on( "error", error => {
-			console.log( "Une erreur est survenue!\nFichier play.js -> connection.on(error)");
-		});
-
-		newGuildData.connection.on( VoiceConnectionStatus.Disconnected, async ( oldState, newState ) => {
-			try {
-				await Promise.race([
-					entersState(newGuildData.connection, VoiceConnectionStatus.Signalling, 5_000),
-					entersState(newGuildData.connection, VoiceConnectionStatus.Connecting, 5_000),
-				]);
-			}
-			catch( error ) {
-				console.log( "Connection détruite!" );
-				newGuildData.connection.destroy();
-			}
-		});
+	// CODE BELOW IN THIS FUNCTION IS TO BE USED FOR THE FUNCTION BODY
 
 
-		newGuildData.player.on('stateChange', (oldState, newState) => {
-			console.log(`Audio player transitioned from ${oldState.status} to ${newState.status}`);
-		});
+	/* const newGuildData = {
+		connection: await connectToVoiceChannel(voiceChannelId, interaction.guild),
+		player: createAudioPlayer(),
+		channelId: voiceChannelId
+	};
+	newGuildData.connection.subscribe( newGuildData.player );
 
-		newGuildData.player.on( "error", error => {
-			console.error( "Une erreur est survenue avec le player!\nFichier : play.js -> player.on(error)" );
-			console.log( error );
-		});
+	// Starting the music bot.
+	const stream = youtubedl(musicInfo.url, {
+		o: '-',
+		q: '',
+		f: 'bestaudio[ext=webm+acodec=opus+asr=48000]/bestaudio',
+		r: '100K',
+	}, { stdio: ['ignore', 'pipe', 'ignore'] });
 
-		client.guildsPlayers.set( interaction.guildId, newGuildData );
-		// Sending the annoucement embed.
-		await interaction.reply({ embeds: [await getPlayMusicEmbed( musicInfo )] } );
-	}
+	const resource = createAudioResource( stream.stdout );
+
+	// Adding the music to the database. */
+
+	/*newGuildData.player.play( resource );
+
+	newGuildData.connection.on( VoiceConnectionStatus.Disconnected, async ( oldState, newState ) => {
+		try {
+			await Promise.race([
+				entersState(newGuildData.connection, VoiceConnectionStatus.Signalling, 5_000),
+				entersState(newGuildData.connection, VoiceConnectionStatus.Connecting, 5_000),
+			]);
+		}
+		catch( error ) {
+			console.log( "Connection détruite!" );
+			newGuildData.connection.destroy();
+		}
+	});
+
+	newGuildData.player.on( "error", error => {
+		console.error( "Une erreur est survenue avec le player!\nFichier : play.js -> player.on(error)" );
+		console.log( error );
+	});
+
+	client.guildsPlayers.set( interaction.guildId, newGuildData );
+	// Sending the annoucement embed.
+	await interaction.reply({ embeds: [await getPlayMusicEmbed( musicInfo )] } );*/
 }
 
 
@@ -123,21 +120,23 @@ async function videoFinder( keywords ) {
  * Get the music's information in function of the source of the search (url or keywords). Then puts the information in
  * an object and returns it.
  * @param {string} param The URL or keywords search for the music.
+ * @param {string} userAvatarUrl The user's avatar URL to display it in the embed.
  */
-async function getMusicInfo( param ) {
+async function getMusicInfo( param, userAvatarUrl ) {
 	if ( ytdl.validateURL( param ) )
-		return await getSongInfoFromUrl( param );
+		return await getSongInfoFromUrl( param, userAvatarUrl );
 	else
-		return await getSongInfoFromSearch( param );
+		return await getSongInfoFromSearch( param, userAvatarUrl );
 }
 
 
 /**
  * Get the song information when the user gave an url.
  * @param {string} songUrl The url of the youtube video.
+ * @param {string} userAvatarUrl The user's avatar URL to display it in the embed.
  * @returns {Promise<{duration: string, thumbnail: *, author: string, lengthSeconds: string, title: string, url: string}>}
  */
-async function getSongInfoFromUrl( songUrl ) {
+async function getSongInfoFromUrl( songUrl, userAvatarUrl ) {
 	const songInfo = await ytdl.getBasicInfo( songUrl );
 	return {
 		title: songInfo.videoDetails.title,
@@ -146,7 +145,8 @@ async function getSongInfoFromUrl( songUrl ) {
 		thumbnail: songInfo.videoDetails.thumbnails[songInfo.videoDetails.thumbnails.length - 1].url,
 		duration: `${Math.floor( songInfo.videoDetails.lengthSeconds / 60 )}:` +
 			`${songInfo.videoDetails.lengthSeconds % 60}`,
-		lengthSeconds: songInfo.videoDetails.lengthSeconds
+		lengthSeconds: songInfo.videoDetails.lengthSeconds,
+		userAvatarUrl: userAvatarUrl
 	};
 }
 
@@ -154,9 +154,10 @@ async function getSongInfoFromUrl( songUrl ) {
 /**
  * Get the song information when the user gave a search.
  * @param {string} searchKeywords The search entered by the user.
+ * @param {string} userAvatarUrl The user's avatar URL to display it in the embed.
  * @returns {Promise<{duration, thumbnail: *, author, lengthSeconds: (number|*), title, url}|null>}
  */
-async function getSongInfoFromSearch( searchKeywords ) {
+async function getSongInfoFromSearch( searchKeywords, userAvatarUrl ) {
 	// If the video is not an URL, then we search using yt-search.
 	const song = await videoFinder( searchKeywords );
 	if ( !song ) return null;
@@ -167,7 +168,8 @@ async function getSongInfoFromSearch( searchKeywords ) {
 		url: song.url,
 		thumbnail: song.thumbnail,
 		duration: song.timestamp,
-		lengthSeconds: song.seconds
+		lengthSeconds: song.seconds,
+		userAvatarUrl: userAvatarUrl
 	};
 }
 
