@@ -98,6 +98,7 @@ async function execute( interaction, client ) {
 		});
 
 		await interaction.reply( "Chargement de la musique..." );
+		await interaction.deleteReply();
 		playSong( interaction.guildId, client.guildsData );
 	}
 }
@@ -188,6 +189,7 @@ function playSong( guildId, guildsData ) {
 	}
 
 	const musicInfo = guildData.queue.shift();
+	guildData.currentSong = musicInfo;
 	const stream = youtubedl(musicInfo.url, {
 		o: '-',
 		q: '',

@@ -6,6 +6,7 @@
  */
 
 
+const { TOKEN } = require( "./files/config.json" );
 const { Client, Collection, Intents } = require( 'discord.js' );
 const { loadCommands, loadEvents } = require( "./utils/load_files" );
 
@@ -18,9 +19,9 @@ const intentsList = [
 const client = new Client( { intents: intentsList } );
 
 // This Map keeps the guilds' player, voice connection and channel's ID to allow multi-server use.
-// lastMusicTime -> the integer associated to the music when it is created. It is used to get the next music.
+// currentSong -> Used to keep the information about the music currently played by the bot.
 // Key : guild's ID
-// Element : { player, connection, voiceChannelId, commandChannel, queue }
+// Element : { player, connection, voiceChannelId, commandChannel, currentSong, queue }
 client.guildsData = new Map();
 
 client.commands = new Collection();
