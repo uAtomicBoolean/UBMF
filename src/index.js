@@ -31,7 +31,7 @@ client.commands = new Collection();
 		await loadCommands( client );
 		await loadEvents( client );
 
-		await loadCommandsToGuild( CLIENT_ID, GUILD_ID )
+		// await loadCommandsToGuild( CLIENT_ID, GUILD_ID )
 
 		await client.login( TOKEN );
 	}
