@@ -6,11 +6,15 @@
  */
 
 
-const { TOKEN, CLIENT_ID, GUILD_ID } = require( "./files/config.json" );
+const { TOKEN } = require( "./files/config.json" );
 const { Client, Collection, Intents } = require( 'discord.js' );
 const { loadCommands, loadEvents } = require( "./utils/load_files" );
-const { loadCommandsToGuild } = require( "./utils/register_commands" );
 
+/*
+// Imports used when developping the bot to update/load the commands in the dev server.
+const { CLIENT_ID, GUILD_ID } = require( "./files/config.json" );
+const { loadCommandsToGuild } = require( "./utils/register_commands" );
+*/
 
 const intentsList = [
 	Intents.FLAGS.GUILD_MESSAGES,
