@@ -5,7 +5,7 @@
  */
 
 
-const { EMBED_COLOR, ADMIN_ID } = require( "../../files/config.json" );
+const { EMBED_COLOR, ADMINS_ID } = require( "../../files/config.json" );
 const { checkUserIsConnected } = require( "../../utils/utils" );
 
 const { SlashCommandBuilder } = require( "@discordjs/builders" );
@@ -31,15 +31,14 @@ async function execute( interaction, client ) {
 
 	// Checking if the user has the permission to use this command.
 	const member = await interaction.guild.members.fetch( interaction.user.id );
-	if ( !member.permissions.has( "MANAGE_MESSAGES" ) || member.id !== ADMIN_ID ) {
-		await interaction.reply( {
+	if ( !ADMINS_ID.includes( member.id ) )
+		return interaction.reply( {
 			embeds: [
 				new MessageEmbed()
 					.setColor( EMBED_COLOR )
 					.setAuthor( "| Tu n'as pas les droits!", interaction.user.avatarURL() )
 			]
 		});
-	}
 
 	const guildId = interaction.guildId;
 	if ( client.guildsData.has( guildId ) ) {

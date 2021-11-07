@@ -33,17 +33,24 @@ async function execute( interaction, client ) {
 	if ( client.guildsData.has( guildId ) ) {
 
 		let textQueue = "";
-		let cpt = 1;
+		let totalLengthSeconds = 0;
+		let cpt = 0;
 		client.guildsData.get( guildId ).queue.forEach( (music) => {
-			if ( cpt === 11 ) return;
-			textQueue += `**${cpt}.** ${music.title} [${music.duration}]\n`;
+			if ( cpt < 10 ) {
+				textQueue += `**${cpt + 1}.** ${music.title} [${music.duration}]\n`;
+			}
+			totalLengthSeconds += music.lengthSeconds;
 			++cpt;
 		});
 
 		const embedQueue = new MessageEmbed()
 			.setColor( EMBED_COLOR )
 			.setAuthor( "| File d'attente", interaction.user.avatarURL() )
-			.setDescription( textQueue );
+			.setDescription( textQueue === "" ? "File d'attente vide." : textQueue );
+
+		if ( cpt !== 0 ) {
+			embedQueue.setFooter( `${cpt} musique(s).` );
+		}
 
 		await interaction.reply( { embeds: [ embedQueue] } );
 	}
