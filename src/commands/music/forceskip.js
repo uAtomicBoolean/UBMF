@@ -30,15 +30,18 @@ async function execute( interaction, client ) {
 	if ( !(await checkUserIsConnected( interaction )) ) return;
 
 	// Checking if the user has the permission to use this command.
-	const member = await interaction.guild.members.fetch( interaction.user.id );
-	if ( !ADMINS_ID.includes( member.id ) )
-		return interaction.reply( {
-			embeds: [
-				new MessageEmbed()
-					.setColor( EMBED_COLOR )
-					.setAuthor( "| Tu n'as pas les droits!", interaction.user.avatarURL() )
-			]
-		});
+
+	/*
+   const member = await interaction.guild.members.fetch( interaction.user.id );
+   if ( !ADMINS_ID.includes( member.id ) )
+	   return interaction.reply( {
+		   embeds: [
+			   new MessageEmbed()
+				   .setColor( EMBED_COLOR )
+				   .setAuthor( "| Tu n'as pas les droits!", interaction.user.avatarURL() )
+		   ]
+	   });
+   */
 
 	const guildId = interaction.guildId;
 	if ( client.guildsData.has( guildId ) ) {
