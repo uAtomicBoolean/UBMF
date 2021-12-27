@@ -10,11 +10,11 @@ const { TOKEN } = require( "./files/config.json" );
 const { Client, Collection, Intents } = require( 'discord.js' );
 const { loadCommands, loadEvents } = require( "./utils/load_files" );
 
-/*
+
 // Imports used when developping the bot to update/load the commands in the dev server.
-const { CLIENT_ID, GUILD_ID } = require( "./files/config.json" );
+const { CLIENT_ID, DEV_GUILD_ID } = require( "./files/config.json" );
 const { loadCommandsToGuild } = require( "./utils/register_commands" );
-*/
+
 
 const intentsList = [
 	Intents.FLAGS.GUILD_MESSAGES,
@@ -35,7 +35,7 @@ client.commands = new Collection();
 		await loadCommands( client );
 		await loadEvents( client );
 
-		// await loadCommandsToGuild( CLIENT_ID, GUILD_ID )
+		await loadCommandsToGuild( CLIENT_ID, DEV_GUILD_ID )
 
 		await client.login( TOKEN );
 	}

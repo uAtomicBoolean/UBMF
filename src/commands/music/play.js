@@ -6,8 +6,7 @@
 
 
 const { EMBED_COLOR } = require( "../../files/config.json" );
-const { checkUserIsConnected } = require( "../../utils/utils" );
-const { getIntDate } = require( "../../utils/utils" );
+const { checkUserIsConnected, getIntDate } = require( "../../utils/utils" );
 
 const { SlashCommandBuilder } = require( "@discordjs/builders" );
 const { CommandInteraction, Client, MessageEmbed } = require( "discord.js" );
@@ -16,7 +15,6 @@ const ytdl = require( "ytdl-core" );
 const youtubedl = require( "youtube-dl-exec" ).raw;
 const ytsearch = require( "yt-search" );
 const dvoice = require( '@discordjs/voice' );
-
 
 
 const slashCommand = new SlashCommandBuilder()
