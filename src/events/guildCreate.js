@@ -8,7 +8,6 @@
 
 const { Client, Guild } = require( "discord.js" );
 const { loadCommandsToGuild } = require( "../utils/register_commands" );
-const { CLIENT_ID } = require( "../files/config.json" );
 
 
 /* ----------------------------------------------- */
@@ -20,7 +19,7 @@ const { CLIENT_ID } = require( "../files/config.json" );
  * @param {Client} client The client that created the interaction.
  */
 async function execute( guild, client ) {
-	await loadCommandsToGuild( CLIENT_ID, guild.id );
+	await loadCommandsToGuild( client.user.id, guild.id );
 }
 
 
