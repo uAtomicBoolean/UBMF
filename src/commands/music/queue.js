@@ -5,8 +5,8 @@
  */
 
 
-const { EMBED_COLOR } = require( "../../files/config.json" );
-const { checkUserIsConnected } = require( "../../utils/utils" );
+const { EMBED_COLOR } = require( `${process.cwd()}/files/config.json` );
+const { checkUserIsConnected } = require( `${process.cwd()}/utils/utils` );
 
 const { SlashCommandBuilder } = require( "@discordjs/builders" );
 const { CommandInteraction, Client, MessageEmbed } = require( "discord.js" );

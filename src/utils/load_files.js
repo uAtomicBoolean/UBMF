@@ -18,7 +18,8 @@ const { Client } = require( "discord.js" );
  */
 async function loadCommands( client ) {
 	// The work directory is different between windows and linux.
-	const dir = process.platform === "win32" ? "./commands" : "src/commands";
+	// const dir = process.platform === "win32" ? "./commands" : "src/commands";
+	const dir = process.cwd() + "/commands"
 
 	// Reading the commands' folders.
 	fs.readdirSync( dir ).forEach( sub_dir => {
@@ -27,7 +28,7 @@ async function loadCommands( client ) {
 
 		for ( const file of commandFiles ) {
 			// Using another pathname because require works from the current file path and not the project path.
-			const command = require( `../commands/${sub_dir}/${file}` );
+			const command = require( `${dir}/${sub_dir}/${file}` );
 			client.commands.set( command.data.name, command );
 		}
 	})
@@ -39,12 +40,13 @@ async function loadCommands( client ) {
  * @param {Client} client The client where the events will be loaded.
  */
 async function loadEvents( client ) {
-	const dir = process.platform === "win32" ? "./events" : "src/events";
+	// const dir = process.platform === "win32" ? "./events" : "src/events";
+	const dir = process.cwd() + "/events"
 
 	// Reading the events' files.
 	const eventFiles = fs.readdirSync( dir ).filter(file => file.endsWith('.js'));
 	for ( const file of eventFiles ) {
-		const event = require( `../events/${file}` );
+		const event = require( `${dir}/${file}` );
 		if ( event.once ) {
 			client.once( event.name, ( ...args ) => event.execute( ...args, client ) );
 		} else {

@@ -6,14 +6,14 @@
  */
 
 
-const { TOKEN } = require( "./files/config.json" );
+const { TOKEN } = require( `${process.cwd()}/files/config.json` );
 const { Client, Collection, Intents } = require( 'discord.js' );
-const { loadCommands, loadEvents } = require( "./utils/load_files" );
+const { loadCommands, loadEvents } = require( `${process.cwd()}/utils/load_files` );
 
 
 // Imports used when developping the bot to update/load the commands in the dev server.
-const { CLIENT_ID, DEV_GUILD_ID } = require( "./files/config.json" );
-const { loadCommandsToGuild } = require( "./utils/register_commands" );
+const { CLIENT_ID, DEV_GUILD_ID } = require( `${process.cwd()}/files/config.json` );
+const { loadCommandsToGuild } = require( `${process.cwd()}/utils/register_commands` );
 
 
 const intentsList = [

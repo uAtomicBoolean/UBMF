@@ -6,7 +6,7 @@
 
 
 const { CommandInteraction, MessageEmbed} = require( "discord.js" );
-const { EMBED_COLOR } = require( "../files/config.json" );
+const { EMBED_COLOR } = require( `${process.cwd()}/files/config.json` );
 
 
 /* ----------------------------------------------- */

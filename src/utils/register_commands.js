@@ -8,7 +8,7 @@
 
 const { REST } = require( "@discordjs/rest" );
 const { Routes } = require( "discord-api-types/v9" );
-const { TOKEN } = require( "../files/config.json" );
+const { TOKEN } = require( `${process.cwd()}/files/config.json` );
 const fs = require( "fs" );
 
 

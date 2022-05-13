@@ -7,7 +7,7 @@
 
 
 const { Client, Guild } = require( "discord.js" );
-const { loadCommandsToGuild } = require( "../utils/register_commands" );
+const { loadCommandsToGuild } = require( `${process.cwd()}/utils/register_commands` );
 
 
 /* ----------------------------------------------- */
